@@ -4,25 +4,22 @@ from backend.services.embedding_manager import EmbeddingManager
 from backend.services.retrieval_manager import RetrievalManager
 from langchain_google_genai import GoogleGenerativeAI
 from backend.services.redis_manager import RedisManager
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.runnable import RunnableLambda
 
 """Handle logic for chat interactions between LLM and user"""
 
 class ChatManager: 
-
-    def __init__(self): 
-        pass
 
     @staticmethod
     def prompt_llm(session_id: str, prompt: str, timestamp: str) -> LLMResponse: 
         """
         1. Store user's message in Redis
         2. Retrieve relevant documents from vector store 
-        3. Format retrieved documents as context for final prompt
-        4. Generate LLM response (store in Redis)
+        4. Generate LLM response and store in Redis
         """
 
         # ------------------Store user's message in Redis---------------
-
         redis_manager = RedisManager()
         redis_manager.add_message(
             session_id=session_id, 
@@ -32,36 +29,47 @@ class ChatManager:
         )
 
         # ------------------Retrieve relevant documents from vector store---------------
-
         retriever_manager = RetrievalManager()
-        result = retriever_manager.retrieve_documents(prompt)
-        documents = result["documents"]
+        retrieved_docs = retriever_manager.retrieve_documents(prompt)
 
-        # ------------------Format documents as context---------------
+        # Context to inject into prompt 
+        context = "\n\n".join([doc["page_content"] for doc in retrieved_docs["documents"]])
 
-        context = "\n\n".join([doc["page_content"] for doc in documents])
-        final_prompt = f"""You are an assistant tasked with using the provided context to answer the question below **if it's relevant**. 
-        If the question is casual, conversational, or unrelated to the context, respond naturally without relying on the context.
+        # ------------------Generate LLM response and store in Redis---------------
 
-        Context:
-        {context}
-
-        Question: {prompt}
-        Answer:
-        """
-
-        # ------------------Generate LLM response---------------
-
+        # Instantiate LLM
         llm = GoogleGenerativeAI(model="gemini-1.5-flash")
-        response = llm.invoke(final_prompt)
 
-        message, timestamp = redis_manager.add_message(
-            session_id=session_id, 
-            role="assistant", 
-            content=response
-        )
+        # Define prompt template 
+        rag_template = ChatPromptTemplate.from_messages([
+            ("system", """You are an assistant tasked with using the provided context to answer the question **if it's relevant**. 
+                If the question is casual, conversational, or unrelated, respond naturally without relying on the context."""),
+            ("human", "Context:\n{context}\n\nQuestion: {question}")
+        ])
 
-        return LLMResponse(llmResponse=message, timestamp=timestamp)
+        # Helper function 
+        def llm_response_to_redis(response: str) -> LLMResponse: 
+            message, timestamp = redis_manager.add_message(
+                session_id=session_id, 
+                role="assistant", 
+                content=response
+            )
+
+            return LLMResponse(llmResponse=message, timestamp=timestamp)
+
+        # Define runnables
+        format_rag_prompt = RunnableLambda(lambda inputs: rag_template.format_prompt(**inputs))
+        invoke_llm = RunnableLambda(lambda prompt_val: llm.invoke(prompt_val.to_messages()).content)
+        store_llm_response = RunnableLambda(llm_response_to_redis)
+        
+        # Assemble chain
+        chain = format_rag_prompt | invoke_llm | store_llm_response 
+        llm_response = chain.invoke({
+            "context": context, 
+            "question": prompt
+        })
+
+        return llm_response
 
     @staticmethod
     def upload_file(file): 

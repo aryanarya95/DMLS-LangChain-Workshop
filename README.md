@@ -8,7 +8,6 @@ up to building a deployable RAG application that can be trained on your own data
 
 ## 📌 Workshop Overview
 
-- Introduction to LangChain (i.e., syntax, basic convo)
 - LangChain concepts (i.e., templating, chaining)
 - Overview of Retrieval-Augmented Generation (RAG) architecture and use cases
 - RAG concepts (i.e., text-splitting, embedding, vector stores, retriever)
@@ -42,24 +41,14 @@ dmls-langchain-workshop/
 
 Click the links below to open up notebooks directly in Google Colab:
 
-#### **Introduction to LangChain**
-
-- [📘 Introduction to LangChain](https://colab.research.google.com/github/kaippatel/DMLS-LangChain-Workshop/blob/master/notebooks/1_basic/1_intro.ipynb)
-- [💬 Basic Conversation](https://colab.research.google.com/github/kaippatel/DMLS-LangChain-Workshop/blob/master/notebooks/1_basic/2_basic_convo.ipynb)
-- [🔄 Continuous Conversation](https://colab.research.google.com/github/kaippatel/DMLS-LangChain-Workshop/blob/master/notebooks/1_basic/3_continuous_convo.ipynb)
-
 #### **LangChain concepts**
 
-- [🧩 Templating](https://colab.research.google.com/github/kaippatel/DMLS-LangChain-Workshop/blob/master/notebooks/2_langchain_concepts/1_prompt_templates.ipynb)
-- [🔗 Chaining](https://colab.research.google.com/github/kaippatel/DMLS-LangChain-Workshop/blob/master/notebooks/2_langchain_concepts/2_chaining.ipynb)
+- [🧩 Templating](https://colab.research.google.com/github/aryanarya95/DMLS-LangChain-Workshop/blob/master/notebooks/1_langchain_concepts/1_prompt_templates.ipynb)
+- [🔗 Chaining](https://colab.research.google.com/github/aryanarya95/DMLS-LangChain-Workshop/blob/master/notebooks/1_langchain_concepts/2_chaining.ipynb)
 
 #### **RAG concepts (i.e., text-splitting, embedding, vector stores, retriever)**
 
-.....
-
-#### **Final build: RAG pipeline that accepts TXT, PDF, DOCX, and CSV files**
-
-.....
+- [🔗 Chaining](https://colab.research.google.com/github/aryanarya95/DMLS-LangChain-Workshop/blob/master/notebooks/2_rag/1_.ipynb)
 
 ---
 
